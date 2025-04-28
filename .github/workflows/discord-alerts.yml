@@ -2,43 +2,14 @@ name: Discord Notifications
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    types: [closed]
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup HTTP Client
-        run: |
-          # Instala jq para manipulação de JSON (já vem instalado no Ubuntu-latest)
-          echo "HTTP client ready"
-
-      - name: Build Notification Payload
-        id: payload
-        run: |
-          TIMESTAMP=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          echo 'payload<<EOF' >> $GITHUB_OUTPUT
-          cat <<EOF >> $GITHUB_OUTPUT
-          {
-            "username": "GitHub Bot",
-            "content": "🚀 Nova atualização em **${{ github.repository }}**",
-            "embeds": [{
-              "title": "Detalhes do Commit",
-              "url": "${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}",
-              "color": 5814783,
-              "fields": [
-                {"name": "Branch", "value": "${{ github.ref }}", "inline": true},
-                {"name": "Autor", "value": "${{ github.actor }}", "inline": true}
-              ],
-              "footer": {"text": "Atualizado em ${TIMESTAMP}"}
-            }]
-          }
-          EOF
-
-      - name: Send Discord Notification
+      - name: Send Basic Notification
         run: |
           curl -X POST \
             -H "Content-Type: application/json" \
-            -d '${{ steps.payload.outputs.payload }}' \
+            -d '{"content":"🚀 Nova atualização em '${{ github.repository }}'\nAutor: '${{ github.actor }}'\nCommit: '${{ github.sha }}'"}' \
             "${{ secrets.DISCORD_WEBHOOK_URL }}"
