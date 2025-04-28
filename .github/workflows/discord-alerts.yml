@@ -10,19 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord Notification
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           curl -X POST \
             -H "Content-Type: application/json" \
             -d '{
-              "content": "🚀 Nova atualização no repositório",
+              "content": "🚀 Nova atualização em **${{ github.repository }}**",
               "embeds": [{
-                "title": "Detalhes do Commit",
+                "title": "Detalhes da Atualização",
                 "fields": [
                   {"name": "Branch", "value": "${{ github.ref }}", "inline": true},
                   {"name": "Autor", "value": "${{ github.actor }}", "inline": true},
-                  {"name": "Commit", "value": "[${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false}
+                  {"name": "Commit", "value": "[Ver alterações](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false}
                 ],
-                "color": 5814783
+                "color": 5814783,
+                "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
               }]
             }' \
-            ${{ secrets.DISCORD_WEBHOOK_URL }}
+            "$WEBHOOK"
