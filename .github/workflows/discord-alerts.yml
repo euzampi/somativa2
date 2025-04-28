@@ -1,19 +1,20 @@
-name: Discord Alerts
-
+name: Discord Notifications
 on:
   push:
-    branches: [ "main" ]  # Dispara em commits diretos na main
+    branches: [ "main" ]
   pull_request:
-    types: [closed]       # Dispara quando uma PR é fechada (mergeada)
+    types: [closed]
 
 jobs:
-  notify-discord:
+  notify:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true || github.ref == 'refs/heads/main'
     steps:
-      - name: Enviar notificação para o Discord
-        uses: Ilshidur/action-discord@v1
+      - name: Send Discord Notification
+        uses: appleboy/discord-webhook@master
         with:
-          args: "🚀 **Nova atualização no repositório!**\n\n📌 **Branch:** ${{ github.ref }}\n💻 **Autor:** ${{ github.actor }}\n🔗 **Commit:** ${{ github.event.head_commit.message }}\n📄 **Detalhes:** ${{ github.event.head_commit.url }}"
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          message: |
+            🚀 **Nova atualização no repositório**
+            📌 Branch: ${{ github.ref }}
+            👤 Autor: ${{ github.actor }}
+            🔗 Commit: [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
