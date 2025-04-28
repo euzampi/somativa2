@@ -1,0 +1,17 @@
+name: Discord Notifications
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Alert
+        uses: Ilshidur/action-discord@v1
+        with:
+          args: "🚀 Nova atualização em **${{ github.repository }}**"
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
