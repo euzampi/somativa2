@@ -10,11 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Discord Notification
-        uses: appleboy/discord-webhook@master
-        with:
-          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          message: |
-            🚀 **Nova atualização no repositório**
-            📌 Branch: ${{ github.ref }}
-            👤 Autor: ${{ github.actor }}
-            🔗 Commit: [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{
+              "content": "🚀 Nova atualização no repositório",
+              "embeds": [{
+                "title": "Detalhes do Commit",
+                "fields": [
+                  {"name": "Branch", "value": "${{ github.ref }}", "inline": true},
+                  {"name": "Autor", "value": "${{ github.actor }}", "inline": true},
+                  {"name": "Commit", "value": "[${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false}
+                ],
+                "color": 5814783
+              }]
+            }' \
+            ${{ secrets.DISCORD_WEBHOOK_URL }}
