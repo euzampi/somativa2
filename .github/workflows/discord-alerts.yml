@@ -9,23 +9,37 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate Webhook URL
+        id: validate
+        run: |
+          if [[ -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]]; then
+            echo "::error::DISCORD_WEBHOOK_URL is empty"
+            exit 1
+          fi
+          if [[ ! "${{ secrets.DISCORD_WEBHOOK_URL }}" =~ ^https://discord\.com/api/webhooks/ ]]; then
+            echo "::error::Invalid Discord webhook format"
+            exit 1
+          fi
+
       - name: Send Discord Notification
-        env:
-          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        if: steps.validate.outcome == 'success'
         run: |
           curl -X POST \
             -H "Content-Type: application/json" \
             -d '{
+              "username": "GitHub Bot",
               "content": "🚀 Nova atualização em **${{ github.repository }}**",
               "embeds": [{
-                "title": "Detalhes da Atualização",
+                "title": "Detalhes do Commit",
+                "description": "[Ver alterações](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})",
+                "color": 5814783,
                 "fields": [
                   {"name": "Branch", "value": "${{ github.ref }}", "inline": true},
-                  {"name": "Autor", "value": "${{ github.actor }}", "inline": true},
-                  {"name": "Commit", "value": "[Ver alterações](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})", "inline": false}
+                  {"name": "Autor", "value": "${{ github.actor }}", "inline": true}
                 ],
-                "color": 5814783,
-                "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+                "footer": {
+                  "text": "GitHub Actions • $(date -u +'%Y-%m-%d %H:%M:%S') UTC"
+                }
               }]
             }' \
-            "$WEBHOOK"
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
